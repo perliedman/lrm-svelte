@@ -1,0 +1,105 @@
+<div class="routing-control">
+  {{#each waypoints as waypoint, i}}
+    <Marker
+      map={{map}}
+      lngLat={{waypoint.lngLat}}
+      on:drag='dragWaypoint(event, i, true)'
+      on:dragend='dragWaypoint(event, i)' />
+  {{/each}}
+  <div>
+    {{#each routes as route}}
+      <RouteLine
+        map={{map}}
+        route={{route}}
+        selected={{route === selectedRoute}}
+        on:selected='selectRoute(route)'/>
+      <Itinerary
+        route={{route}}
+        selected={{route === selectedRoute}}
+        on:selected='selectRoute(route)' />
+    {{/each}}
+  </div>
+</div>
+
+<script>
+  import Marker from './Marker.html'
+  import RouteLine from './RouteLine.html'
+  import Itinerary from './Itinerary.html'
+
+  export default {
+    oncreate () {
+      this.observe('waypoints', waypoints => {
+        this.lastRouteTimestamp = +new Date()
+        this.get('router').route(waypoints, this.routeReceived.bind(this))
+      })
+    },
+
+    data () {
+      return {
+        routes: []
+      }
+    },
+
+    methods: {
+      routeReceived (err, routes) {
+        if (err) {
+          // TODO: error handling
+          console.error(err)
+          return
+        }
+
+        this.set({routes, selectedRoute: routes[0]})
+      },
+      dragWaypoint (e, i, debounce) {
+        if (this.routeDebounce) {
+          clearTimeout(this.routeDebounce)
+        }
+        var now = +new Date()
+        var firstNextRun = (this.lastRouteTimestamp || now) + 250
+        var timeout = debounce ? Math.max(0, firstNextRun - now) : 0
+        this.routeDebounce = setTimeout(() => {
+          const waypoints = this.get('waypoints')
+          waypoints[i].lngLat = e.lngLat
+          this.set({waypoints})
+        }, debounce ? timeout : 0)
+      },
+      selectRoute (route) {
+        this.set({selectedRoute: route})
+      }
+    },
+
+    components: {
+      Marker,
+      RouteLine,
+      Itinerary
+    }
+  }
+</script>
+
+<style>
+  .routing-control {
+    transition: "width, height, font-size" 0.25s ease-out;
+
+    background-color: white;
+    color: #444;
+    padding: 0.25em 0.75em;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    border-radius: 4px;
+  }
+
+  .routing-control h1 {
+    font-size: 100%;
+    clear: none;
+    display: inline-block;
+  }
+
+  .routing-control h1 a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .routing-route-summary {
+    float: right;
+    margin: 0.83em;
+  }
+</style>

@@ -1,0 +1,20 @@
+<div></div>
+
+<script>
+  import L from 'leaflet'
+  import {toLatLng, toLngLat} from '../leaflet-utils'
+
+  export default {
+    oncreate () {
+      this.marker =
+        L.marker(this.get('lngLat'), {draggable: true})
+        .on('drag dragend', e => this.fire('drag', {lngLat: toLngLat(this.marker.getLatLng())}))
+        .addTo(this.get('map'))
+      this.observe('lngLat', lngLat => this.marker.setLatLng(toLatLng(lngLat)))
+    },
+
+    ondestroy () {
+      this.map.removeLayer(this.marker)
+    }
+  }
+</script>
