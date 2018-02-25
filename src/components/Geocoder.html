@@ -1,13 +1,13 @@
 <input
   ref:input
   value='{{waypoint.name}}'
-  on:change='geocode(event)'
+  on:keydown='keydown(event)'
   on:focus='refs.input.select()'
   on:blur='set({showSuggestions: false})'/>
 {{#if showSuggestions}}
 <ul>
-  {{#each suggestions as suggestion}}
-  <li class={{showSuggestions}}>
+  {{#each suggestions as suggestion, i}}
+  <li class={{selectedIndex === i ? 'selected' : ''}}>
     <button type="button" on:mousedown="selectSuggestion(suggestion)">{{suggestion.name}}</button>
   </li>
   {{/each}}
@@ -30,11 +30,37 @@
       return {
         id: ++idCounter,
         suggestions: [],
-        showSuggestions: false
+        showSuggestions: false,
+        selectedIndex: -1
       }
     },
 
     methods: {
+      keydown (e) {
+        const currIndex = this.get('selectedIndex')
+        const changeSelection = d => {
+          const nSuggestions = this.get('suggestions').length
+
+          this.set({selectedIndex: (currIndex + d) % nSuggestions})
+        }
+
+        switch (e.keyCode) {
+        case 13:
+          if (currIndex >= 0) {
+            this.selectSuggestion(this.get('suggestions')[currIndex])
+          } else {
+            this.geocode(e)
+          }
+          break
+        case 38:
+          changeSelection(-1)
+          break
+        case 40:
+          changeSelection(1)
+          break
+        }
+      },
+
       geocode (e) {
         const waypoint = this.get('waypoint')
         const value = e.target.value
@@ -42,7 +68,7 @@
         this.set({showSuggestions: true})
 
         if (value !== waypoint.name) {
-          this.set({suggestions: []})
+          this.set({suggestions: [], selectedIndex: -1})
 
           this.get('geocoder').geocode(value, results => {
             results = results.map(result => ({
@@ -82,7 +108,7 @@
 <style>
   input {
     border: none;
-    border-bottom: 1px solid #aaa;
+    border-bottom: 1px solid #ddd;
     width: 100%;
     margin: 0.5em 0 0.5em 0;
     padding: 0 0.3em 0.2em 0.3em;
@@ -93,7 +119,7 @@
     background-color: white;
     list-style-type: none;
     position: absolute;
-    border: 1px solid #aaa;
+    border: 1px solid #ddd;
     padding: 0 0.5em 0;
     margin: 0;
     word-wrap: none;
@@ -101,7 +127,16 @@
   }
 
   li {
-    padding-tpå: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #ddd;
+  }
+
+  li:last {
+    border-bottom: none;
+  }
+
+  li.selected {
+    background-color: #ddd;
   }
 
   button {

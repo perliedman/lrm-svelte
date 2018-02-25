@@ -4,7 +4,7 @@
       <a href="#" on:click='fire("selected")'>{{route.name}}</a>
     </h1>
     <div class="routing-route-summary">
-      {{formatDistance(route.summary.totalDistance)}},
+      {{formatDistance(route.summary.totalDistance, -1)}},
       {{formatDuration(route.summary.totalTime)}}
     </div>
   </div>
