@@ -1,0 +1,120 @@
+<input
+  ref:input
+  value='{{waypoint.name}}'
+  on:change='geocode(event)'
+  on:focus='refs.input.select()'
+  on:blur='set({showSuggestions: false})'/>
+{{#if showSuggestions}}
+<ul>
+  {{#each suggestions as suggestion}}
+  <li class={{showSuggestions}}>
+    <button type="button" on:mousedown="selectSuggestion(suggestion)">{{suggestion.name}}</button>
+  </li>
+  {{/each}}
+</ul>
+{{/if}}
+
+<script>
+  var idCounter = 0
+
+  export default {
+    oncreate () {
+      this.observe('waypoint', wp => {
+        if (!wp.name) {
+          this.reverseGeocode()
+        }
+      })
+    },
+
+    data () {
+      return {
+        id: ++idCounter,
+        suggestions: [],
+        showSuggestions: false
+      }
+    },
+
+    methods: {
+      geocode (e) {
+        const waypoint = this.get('waypoint')
+        const value = e.target.value
+
+        this.set({showSuggestions: true})
+
+        if (value !== waypoint.name) {
+          this.set({suggestions: []})
+
+          this.get('geocoder').geocode(value, results => {
+            results = results.map(result => ({
+              name: result.name,
+              lngLat: [result.center.lng, result.center.lat]
+            }))
+
+            if (results.length === 1) {
+              this.fire('geocoded', {data: results[0]})
+            } else {
+              this.set({suggestions: results})
+            }
+          })
+        }
+      },
+
+      reverseGeocode () {
+        const waypoint = this.get('waypoint')
+        const lngLat = waypoint.lngLat
+        if (lngLat) {
+          this.get('geocoder').reverse(
+            {lat: lngLat[1], lng: lngLat[0]},
+            18,
+            results =>
+              this.fire('reversegeocoded', {data:{name: results[0].name}}))
+        }
+      },
+
+      selectSuggestion (suggestion) {
+        this.set({showSuggestions: false})
+        this.fire('geocoded', {data: suggestion})
+      }
+    }
+  }
+</script>
+
+<style>
+  input {
+    border: none;
+    border-bottom: 1px solid #aaa;
+    width: 100%;
+    margin: 0.5em 0 0.5em 0;
+    padding: 0 0.3em 0.2em 0.3em;
+  }
+
+  ul {
+    left: 0.25em;
+    background-color: white;
+    list-style-type: none;
+    position: absolute;
+    border: 1px solid #aaa;
+    padding: 0 0.5em 0;
+    margin: 0;
+    word-wrap: none;
+    text-overflow: ellipsis;
+  }
+
+  li {
+    padding-tpå: 0.5em;
+  }
+
+  button {
+    background: none;
+    color: inherit;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    outline: inherit;
+    word-wrap: none;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: left;
+  }
+</style>

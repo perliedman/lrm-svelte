@@ -23,6 +23,7 @@ export default {
 
     onAdd (map) {
       this._container = L.DomUtil.create('div')
+      L.DomEvent.disableClickPropagation(this._container)
       this._component = new Control({
         target: this._container,
         data: Object.assign({map}, this.options)

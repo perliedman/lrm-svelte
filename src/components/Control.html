@@ -1,11 +1,18 @@
 <div class="routing-control">
+  <div>
   {{#each waypoints as waypoint, i}}
     <Marker
       map={{map}}
       lngLat={{waypoint.lngLat}}
       on:drag='dragWaypoint(event, i, true)'
       on:dragend='dragWaypoint(event, i)' />
+    <Geocoder
+      waypoint={{waypoint}}
+      geocoder={{geocoder}}
+      on:geocoded='setWaypoint(i, event.data)'
+      on:reversegeocoded='setWaypoint(i, event.data)'/>
   {{/each}}
+  </div>
   <div>
     {{#each routes as route}}
       <RouteLine
@@ -23,6 +30,7 @@
 
 <script>
   import Marker from './Marker.html'
+  import Geocoder from './Geocoder.html'
   import RouteLine from './RouteLine.html'
   import Itinerary from './Itinerary.html'
 
@@ -50,26 +58,35 @@
 
         this.set({routes, selectedRoute: routes[0]})
       },
-      dragWaypoint (e, i, debounce) {
+      dragWaypoint (e, i, dragging) {
         if (this.routeDebounce) {
           clearTimeout(this.routeDebounce)
         }
         var now = +new Date()
         var firstNextRun = (this.lastRouteTimestamp || now) + 250
-        var timeout = debounce ? Math.max(0, firstNextRun - now) : 0
+        var timeout = dragging ? Math.max(0, firstNextRun - now) : 0
         this.routeDebounce = setTimeout(() => {
           const waypoints = this.get('waypoints')
           waypoints[i].lngLat = e.lngLat
+          if (!dragging) {
+            waypoints[i].name = null
+          }
           this.set({waypoints})
-        }, debounce ? timeout : 0)
+        }, dragging ? timeout : 0)
       },
       selectRoute (route) {
         this.set({selectedRoute: route})
+      },
+      setWaypoint (i, data) {
+        const waypoints = this.get('waypoints')
+        Object.assign(waypoints[i], data)
+        this.set({waypoints})
       }
     },
 
     components: {
       Marker,
+      Geocoder,
       RouteLine,
       Itinerary
     }

@@ -8,7 +8,7 @@
     oncreate () {
       this.marker =
         L.marker(this.get('lngLat'), {draggable: true})
-        .on('drag dragend', e => this.fire('drag', {lngLat: toLngLat(this.marker.getLatLng())}))
+        .on('drag dragend', e => this.fire(e.type, {lngLat: toLngLat(this.marker.getLatLng())}))
         .addTo(this.get('map'))
       this.observe('lngLat', lngLat => this.marker.setLatLng(toLatLng(lngLat)))
     },
