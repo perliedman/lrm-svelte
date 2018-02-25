@@ -9,8 +9,8 @@ var waypoints = [
 	[57.6792, 11.949]
 ]
 var control = new lrm.Control({
-	waypoints: waypoints
-	// geocoder: L.Control.Geocoder.nominatim()
+	waypoints: waypoints,
+  geocoder: L.Control.Geocoder.nominatim()
 }).addTo(map);
 
 map.fitBounds(new L.latLngBounds(waypoints))
