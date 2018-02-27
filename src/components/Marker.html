@@ -10,11 +10,33 @@
         L.marker(this.get('lngLat'), {draggable: true})
         .on('drag dragend', e => this.fire(e.type, {lngLat: toLngLat(this.marker.getLatLng())}))
         .addTo(this.get('map'))
-      this.observe('lngLat', lngLat => this.marker.setLatLng(toLatLng(lngLat)))
+      this
+        .observe('lngLat', lngLat => this.marker.setLatLng(toLatLng(lngLat)))
+      this
+        .observe('dragging', dragging => {
+          console.log('dragging', dragging)
+          const onOff = dragging ? 'on' : 'off'
+          const map = this.get('map')
+          map[onOff]('mousemove', this.drag, this)
+          map[onOff]('mouseup', this.dragEnd, this)
+        })
     },
 
     ondestroy () {
       this.map.removeLayer(this.marker)
+    },
+
+    methods: {
+      drag (e) {
+        console.log('dragging', e.latlng)
+        this.fire('drag', {lngLat: toLngLat(e.latlng)})
+        L.DomEvent.stop(e)
+      },
+      dragEnd (e) {
+        console.log('dragend', e.latlng)
+        this.fire('dragend', {lngLat: toLngLat(e.latlng)})
+        L.DomEvent.stop(e)
+      },
     }
   }
 </script>

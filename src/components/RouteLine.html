@@ -12,6 +12,7 @@
           this.line = 
             L.polyline(latLngs, this.get('style'))
             .on('click', () => this.fire('selected'))
+            .on('mousedown', e => this.get('selected') && this.startDrag(e))
             .addTo(this.get('map'))
         } else {
           this.line.setLatLngs(latLngs)
@@ -35,6 +36,52 @@
         weight: selected ? 9 : 6,
         opacity: selected ? 1 : 0.5
       })
+    },
+
+    methods: {
+      startDrag (e) {
+        const map = this.get('map')
+        const cleanup = () => {
+          map
+            .off('mouseup', cleanup)
+            .off('mousemove', dragging)
+        }
+        const dragging = () => {
+          cleanup()
+
+          const route = this.get('route')
+          const bestMatch = route.coordinates.reduce((a, c, i) => {
+            if (i === route.waypointIndices[a.nextWpIndex]) {
+              a.nextWpIndex++
+            }
+
+            // Euclidean math in lat/lng space because what could possibly go wrong?
+            const d = Math.hypot(c[0] - e.latlng.lng, c[1] - e.latlng.lat)
+            if (d < a.minDist) {
+              a.wpIndex = a.nextWpIndex - 1
+              a.index = i
+              a.minDist = d
+            }
+
+            return a
+          }, {nextWpIndex: 0, wpIndex: -1, minDist: 1e9})
+
+          if (bestMatch.wpIndex >= 0) {
+            this.fire('dragging', {
+              afterWpIndex: bestMatch.wpIndex,
+              lngLat: route.coordinates[bestMatch.index]
+            })
+          } else {
+            console.warn('Did not find a matching line point / waypoint')
+          }
+
+          L.DomEvent.stop(e)
+        }
+
+        map
+          .once('mouseup', cleanup)
+          .on('mousemove', dragging)
+      },
     }
   }
 </script>

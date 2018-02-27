@@ -4,6 +4,7 @@
     <Marker
       map={{map}}
       lngLat={{waypoint.lngLat}}
+      dragging={{draggedWaypoint === waypoint}}
       on:drag='dragWaypoint(event, i, true)'
       on:dragend='dragWaypoint(event, i)' />
     <Geocoder
@@ -19,7 +20,8 @@
         map={{map}}
         route={{route}}
         selected={{route === selectedRoute}}
-        on:selected='selectRoute(route)'/>
+        on:selected='selectRoute(route)'
+        on:dragging='addDraggingWaypoint(event.afterWpIndex, event.lngLat)'/>
       <Itinerary
         route={{route}}
         selected={{route === selectedRoute}}
@@ -33,6 +35,7 @@
   import Geocoder from './Geocoder.html'
   import RouteLine from './RouteLine.html'
   import Itinerary from './Itinerary.html'
+  import Waypoint from '../waypoint'
 
   export default {
     oncreate () {
@@ -44,7 +47,8 @@
 
     data () {
       return {
-        routes: []
+        routes: [],
+        draggedWaypoint: null
       }
     },
 
@@ -71,7 +75,7 @@
           if (!dragging) {
             waypoints[i].name = null
           }
-          this.set({waypoints})
+          this.set({waypoints, draggedWaypoint: null})
         }, dragging ? timeout : 0)
       },
       selectRoute (route) {
@@ -81,6 +85,12 @@
         const waypoints = this.get('waypoints')
         Object.assign(waypoints[i], data)
         this.set({waypoints})
+      },
+      addDraggingWaypoint (afterWpIndex, lngLat) {
+        const waypoints = this.get('waypoints')
+        const waypoint = new Waypoint(lngLat)
+        waypoints.splice(afterWpIndex + 1, 0, waypoint)
+        this.set({waypoints, draggedWaypoint: waypoint})
       }
     },
 
