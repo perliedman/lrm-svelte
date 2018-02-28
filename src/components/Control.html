@@ -75,7 +75,10 @@
           if (!dragging) {
             waypoints[i].name = null
           }
-          this.set({waypoints, draggedWaypoint: null})
+          this.set({waypoints})
+          if (!dragging) {
+            this.set({draggedWaypoint: null})
+          }
         }, dragging ? timeout : 0)
       },
       selectRoute (route) {

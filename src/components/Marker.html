@@ -19,6 +19,7 @@
           const map = this.get('map')
           map[onOff]('mousemove', this.drag, this)
           map[onOff]('mouseup', this.dragEnd, this)
+          map.dragging[dragging ? 'disable' : 'enable']()
         })
     },
 
@@ -28,12 +29,11 @@
 
     methods: {
       drag (e) {
-        console.log('dragging', e.latlng)
+        this.marker.setLatLng(e.latlng)
         this.fire('drag', {lngLat: toLngLat(e.latlng)})
         L.DomEvent.stop(e)
       },
       dragEnd (e) {
-        console.log('dragend', e.latlng)
         this.fire('dragend', {lngLat: toLngLat(e.latlng)})
         L.DomEvent.stop(e)
       },
