@@ -7,3 +7,5 @@ re-implement a fraction of the functionality from
 with modern tools.
 
 Tiny demo here: [http://www.liedman.net/lrm-svelte/](http://www.liedman.net/lrm-svelte/)
+
+**This repo has been discontinued - I liked Svelte so much that development continues in [Leaflet Routing Machine's `svelte` branch](https://github.com/perliedman/leaflet-routing-machine/tree/svelte).**
